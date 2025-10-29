@@ -1,52 +1,57 @@
-using System.IO;
-using Microsoft.AspNetCore.Http.Connections;
+using System.Security.Cryptography;
 
 namespace Tomrrent
 {
     class Piece
     {
-        //initialise with file to be pieced
-        public Torrent torrent { get; set; }
-        public int PieceSize { get; set; }
-        public int BlockSize { get; set; }
-        public long TotalSize { get{ return torrent.Files.Sum(x => x.Size);} }
+        public int Index { get; private set; }
+        public int Size { get; private set; }
+        public int BlockSize { get; private set; }
+        public byte[] Hash { get; private set; }
+        public bool[] IsBlockAcquired { get; private set; }
+        public bool IsVerified { get; private set; }
+
+        private Torrent ParentTorrent;
+        private static SHA1 sha1 = SHA1.Create();
+
+        public Piece(int index, int size, int blockSize, Torrent parent)
+        {
+            Index = index;
+            Size = size;
+            BlockSize = blockSize;
+            ParentTorrent = parent;
+
+            int blockCount = GetBlockCount();
+            IsBlockAcquired = new bool[blockCount];
 
 
-        public int PieceCount { get { return PieceHashes.Length; } }
-
-        public byte[][] PieceHashes { get; private set; }
-        public bool[] IsPieceVerified { get; private set; }
-        public bool[][] IsBlockAcquired { get; private set; }
-        public int VerifiedPieceCount { get { return IsPieceVerified.Count(x => x); } }
-        public double VerifiedRatio { get { return VerifiedPieceCount / (double)PieceCount; } }
-        public bool IsCompleted { get { return VerifiedPieceCount == PieceCount; } }
-        public bool IsStarted { get { return VerifiedPieceCount > 0; } }
-
-        public long Uploaded { get; set; } = 0;
-        public long Downloaded { get { return PieceSize * VerifiedPieceCount; } } // !! incorrect
-        public long Left { get { return TotalSize - Downloaded; } }
+            Hash = GetHash();
+            Verify(index);
+        }
+        
 
         public int GetPieceSize(int piece)
         {
-            if (piece != PieceCount - 1)
-            {
-                return PieceSize;
-            }
-            int remains =Convert.ToInt32(TotalSize % PieceSize);
-            return (remains == 0) ? PieceSize : remains;
+            return Size;
         }
-        public int GetBlockSize(int piece, int block)
+        public int GetBlockCount()
         {
-            if (block != GetBlockCount(piece) - 1)
-            {
-                return BlockSize;
-            }
-            int remains = Convert.ToInt32(GetPieceSize(piece) % PieceSize);
-            return (remains == 0) ? 0 : remains;
+            return (int)Math.Ceiling(Size / (double)BlockSize);
         }
-        public int GetBlockCount(int piece)
+
+        public byte[] GetHash()
         {
-            return Convert.ToInt32(Math.Ceiling(GetPieceSize(piece) / (double)BlockSize));
+            byte[] data = new byte[Size];
+            return sha1.ComputeHash(data);
         }
+
+        public void Verify(int piece)
+        {
+            byte[] hash = GetHash();
+            if(hash != null && hash.SequenceEqual(ParentTorrent.PieceHashes[piece]))
+            IsVerified = true;
+        }
+
+        
     }
 }

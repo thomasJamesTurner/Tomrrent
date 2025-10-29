@@ -158,7 +158,7 @@ namespace Tomrrent
         private static void EncodeDictionary(MemoryStream buffer,Dictionary<string,object> dictionary)
         {
             buffer.Append(DictionaryStart);
-            var sortedKeys = dictionary.Keys.ToList().OrderBy(x => BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
+            var sortedKeys = dictionary.Keys.ToList().OrderBy(static x => BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
 
             foreach (var key in sortedKeys)
             {
@@ -184,7 +184,7 @@ namespace Tomrrent
                 keys.Add(key);
                 dictionary.Add(key, val);
             }
-            var sortedKeys = keys.OrderBy(x => BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
+            var sortedKeys = keys.OrderBy(static x => BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
             if (!keys.SequenceEqual(sortedKeys))
                 throw new Exception("error loading dictionary: keys not sorted");
     
