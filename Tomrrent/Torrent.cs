@@ -44,7 +44,7 @@ namespace Tomrrent
         public string UrlSafeStringInfohash => Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(Infohash, 0, 20));
         public event EventHandler<List<IPEndPoint>> PeerList;
 
-        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize, int blockSize = 16384, bool? isPrivate = false)
+        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize,byte[] pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
         {
             Name = name;
             DownloadDirectory = address;
@@ -65,10 +65,32 @@ namespace Tomrrent
 
             // Split into pieces
             int pieceCount = (int)Math.Ceiling(TotalSize / (double)PieceSize);
-            for (int i = 0; i < pieceCount; i++)
+            PieceHashes = new byte[pieceCount][];
+            if (pieceHashes == null)
             {
-                Pieces.Add(new Piece(i, PieceSize, BlockSize, this));
+                //new torrent
+                for (int i = 0; i < pieceCount; i++)
+                {
+                    Piece piece = new Piece(i, PieceSize, BlockSize, this);
+                    PieceHashes[i] = piece.GetHash();
+                    Pieces.Add(piece);
+                }
+                 
+
             }
+            else
+            {
+                for (int i = 0; i < pieceCount; i++)
+                {
+
+                    PieceHashes[i] = new byte[20];
+                    Piece piece = new Piece(i, PieceSize, BlockSize, this);
+                    Buffer.BlockCopy(pieceHashes, i * 20, PieceHashes[i], 0, 20);
+                    Pieces.Add(piece);
+                    
+                }
+            }
+            
 
             object info = TorrentInfoToEncodingObject(this);
             byte[] bytes = Encoder.Encode(info);

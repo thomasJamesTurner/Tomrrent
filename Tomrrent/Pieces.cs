@@ -14,7 +14,7 @@ namespace Tomrrent
         private Torrent ParentTorrent;
         private static SHA1 sha1 = SHA1.Create();
 
-        public Piece(int index, int size, int blockSize, Torrent parent)
+        public Piece(int index, int size, int blockSize, Torrent parent, byte[] hash = null)
         {
             Index = index;
             Size = size;
@@ -24,8 +24,14 @@ namespace Tomrrent
             int blockCount = GetBlockCount();
             IsBlockAcquired = new bool[blockCount];
 
-
-            Hash = GetHash();
+            if (hash == null)
+            {
+                Hash = GetHash();
+            }
+            else
+            {
+                Hash = hash;
+            }
             Verify(index);
         }
         
