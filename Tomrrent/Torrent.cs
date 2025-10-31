@@ -96,7 +96,7 @@ namespace Tomrrent
             byte[] bytes = Encoder.Encode(info);
             Infohash = SHA1.Create().ComputeHash(bytes);
         }
-        private static object TorrentToEncodingObject(Torrent torrent)
+        private static Dictionary<string,object> TorrentToEncodingObject(Torrent torrent)
         {
             Dictionary<string,object> dict = new Dictionary<string, object>();
 
@@ -113,7 +113,7 @@ namespace Tomrrent
             return dict;
         }
 
-        private static object TorrentInfoToEncodingObject(Torrent torrent)
+        private static Dictionary<string, object> TorrentInfoToEncodingObject(Torrent torrent)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
 

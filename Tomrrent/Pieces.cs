@@ -53,9 +53,13 @@ namespace Tomrrent
 
         public void Verify(int piece)
         {
-            byte[] hash = GetHash();
-            if(hash != null && hash.SequenceEqual(ParentTorrent.PieceHashes[piece]))
-            IsVerified = true;
+            
+            if (Hash != null && Hash.SequenceEqual(ParentTorrent.PieceHashes[piece]))
+            {
+                IsVerified = true;
+                for (int j = 0; j < IsBlockAcquired.Length; j++)
+                    IsBlockAcquired[j] = true;
+            }
         }
 
         
