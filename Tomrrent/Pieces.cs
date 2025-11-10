@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 
 namespace Tomrrent
 {
-    class Piece
+    public class Piece
     {
         public int Index { get; private set; }
         public int Size { get; private set; }

@@ -1,6 +1,6 @@
 namespace Tomrrent
 {
-    class FileItem
+    public class FileItem
     {
         public string Path;
         public long Size;

@@ -88,12 +88,12 @@ namespace Tomrrent
             object obj = Encoder.DecodeFile(filePath);
             string name = Path.GetFileNameWithoutExtension(filePath);
 
-            return Encoder.ObjectToTorrent(obj, name, downloadPath);
+            return Encoder.EncodingObjectToTorrent(obj, name, downloadPath);
         }
         
         public static void SaveToFile(Torrent torrent)
         {
-            object obj = Encoder.EncodeToFile(torrent);
+            object obj = Encoder.TorrentToEncodingObject(torrent);
         
             Encoder.EncodeToFile(obj, torrent.Name + ".torrent");
         }

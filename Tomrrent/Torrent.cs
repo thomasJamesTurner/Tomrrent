@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http.Connections;
 
 namespace Tomrrent
 {
-    class Torrent
+    public class Torrent
     {
         public string Name { get; private set; }
         public bool? IsPrivate { get; private set; }
