@@ -76,11 +76,26 @@ namespace Tomrrent
             return Read(parentTorrent,piece * parentTorrent.PieceSize + offset, length);
         }
 
-        public void WriteBlock(Torrent parentTorrent,int piece, int block, byte[] bytes)
-        {            
-            Write(parentTorrent,piece * parentTorrent.PieceSize + block * parentTorrent.BlockSize, bytes);
+        public void WriteBlock(Torrent parentTorrent, int piece, int block, byte[] bytes)
+        {
+            Write(parentTorrent, piece * parentTorrent.PieceSize + block * parentTorrent.BlockSize, bytes);
             parentTorrent.Pieces[piece].IsBlockAcquired[block] = true;
             parentTorrent.Pieces[piece].Verify(piece);
+        }
+
+        public static Torrent LoadFromFile(string filePath, string downloadPath)
+        {
+            object obj = Encoder.DecodeFile(filePath);
+            string name = Path.GetFileNameWithoutExtension(filePath);
+
+            return Encoder.ObjectToTorrent(obj, name, downloadPath);
+        }
+        
+        public static void SaveToFile(Torrent torrent)
+        {
+            object obj = Encoder.EncodeToFile(torrent);
+        
+            Encoder.EncodeToFile(obj, torrent.Name + ".torrent");
         }
     }
 }
