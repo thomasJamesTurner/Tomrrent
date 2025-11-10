@@ -51,14 +51,26 @@ namespace Tomrrent
             return sha1.ComputeHash(data);
         }
 
+        public event EventHandler<int> PieceVerified;
         public void Verify(int piece)
         {
-            
+
             if (Hash != null && Hash.SequenceEqual(ParentTorrent.PieceHashes[piece]))
             {
                 IsVerified = true;
                 for (int j = 0; j < IsBlockAcquired.Length; j++)
                     IsBlockAcquired[j] = true;
+                if (PieceVerified != null)
+                {
+                    PieceVerified(this, piece);
+                }
+                return;
+            }
+            IsVerified = false;
+            if (IsBlockAcquired.All(x => x))
+            {
+                for (int j = 0; j < IsBlockAcquired.Length; j++)
+                    IsBlockAcquired[j] = false;
             }
         }
 
