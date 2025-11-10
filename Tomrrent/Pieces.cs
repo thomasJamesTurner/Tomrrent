@@ -10,7 +10,7 @@ namespace Tomrrent
         public byte[] Hash { get; private set; }
         public bool[] IsBlockAcquired { get; private set; }
         public bool IsVerified { get; private set; }
-
+        public event EventHandler<int> PieceVerified;
         private Torrent ParentTorrent;
         private static SHA1 sha1 = SHA1.Create();
 
@@ -51,7 +51,7 @@ namespace Tomrrent
             return sha1.ComputeHash(data);
         }
 
-        public event EventHandler<int> PieceVerified;
+        
         public void Verify(int piece)
         {
 
