@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using Microsoft.AspNetCore.Http.Connections;
+using System.Runtime.CompilerServices;
 
 namespace Tomrrent
 {
@@ -44,7 +45,7 @@ namespace Tomrrent
         public string UrlSafeStringInfohash => Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(Infohash, 0, 20));
         public event EventHandler<List<IPEndPoint>> PeerList;
 
-        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize,byte[] pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
+        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize, byte[] pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
         {
             Name = name;
             DownloadDirectory = address;
@@ -75,7 +76,7 @@ namespace Tomrrent
                     PieceHashes[i] = piece.GetHash();
                     Pieces.Add(piece);
                 }
-                 
+
 
             }
             else
@@ -87,14 +88,58 @@ namespace Tomrrent
                     Piece piece = new Piece(i, PieceSize, BlockSize, this);
                     Buffer.BlockCopy(pieceHashes, i * 20, PieceHashes[i], 0, 20);
                     Pieces.Add(piece);
-                    
+
                 }
             }
-            
+
 
             object info = TorrentInfoToEncodingObject(this);
             byte[] bytes = Encoder.Encode(info);
             Infohash = SHA1.Create().ComputeHash(bytes);
+        }
+        
+        public static Torrent Create(string path,List<string> trackers = null, int pieceSize = 32768,string comment = "")
+        {
+            string name = "";
+            List<FileItem> files = new List<FileItem>();
+            if (File.Exists(path))
+            {
+                // single file torrent
+                name = Path.GetFileName(path);
+                long length = new FileInfo(path).Length;
+                files.Add(new FileItem { Path = name, Size = length });
+            }
+            else
+            {
+                // directory torrent
+                name = path;
+                string directory = path + Path.DirectorySeparatorChar;
+
+                long offset = 0;
+                //copy all files in directory and all child directories
+                foreach (string file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+                {
+                    string fileName = file.Substring(directory.Length);
+                    long length = new FileInfo(path).Length;
+                    // ignore hidden files
+                    if (fileName.StartsWith("."))
+                    {
+                        continue;
+                    }
+
+                    files.Add(new FileItem { Path = fileName, Size = length, Offset = offset });
+                    offset++;
+                }
+            }
+
+            Torrent torrent = new Torrent(name, "", files, trackers, pieceSize);
+            torrent.Comment = comment;
+            torrent.CreatedBy = "Demo Client";
+            torrent.CreationDate = DateTime.Now;
+            torrent.Encoding = Encoding.UTF8;
+
+            return torrent;
+
         }
         private static Dictionary<string,object> TorrentToEncodingObject(Torrent torrent)
         {
