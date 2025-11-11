@@ -4,7 +4,7 @@ namespace Tomrrent
 {
     class FileHandler
     {
-        public byte[] Read(Torrent parentTorrent, long start, int length)
+        public byte[]? Read(Torrent parentTorrent, long start, int length)
         {
             long end = start + length;
             byte[] buffer = new byte[length];
@@ -31,7 +31,7 @@ namespace Tomrrent
                 using (Stream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     stream.Seek(fstart, SeekOrigin.Begin);
-                    stream.Read(buffer, bstart, flength);
+                    stream.ReadExactly(buffer, bstart, flength);
                 }
             }
             return buffer;
@@ -66,16 +66,20 @@ namespace Tomrrent
                 }
             }
         } 
+#pragma warning disable CS8603 // Possible null reference return.
         public byte[] ReadPiece(Torrent parentTorrent,int piece)
         {
-            return Read(parentTorrent,piece * parentTorrent.PieceSize, parentTorrent.Pieces[piece].GetPieceSize(piece));
+
+            return Read(parentTorrent, piece * parentTorrent.PieceSize, parentTorrent.Pieces[piece].GetPieceSize(piece));
         }
 
         public byte[] ReadBlock(Torrent parentTorrent,int piece, int offset, int length)
         {
-            return Read(parentTorrent,piece * parentTorrent.PieceSize + offset, length);
-        }
 
+            return Read(parentTorrent, (piece * parentTorrent.PieceSize) + offset, length);
+
+        }
+#pragma warning restore CS8603 // Possible null reference return.
         public void WriteBlock(Torrent parentTorrent, int piece, int block, byte[] bytes)
         {
             Write(parentTorrent, piece * parentTorrent.PieceSize + block * parentTorrent.BlockSize, bytes);
