@@ -36,6 +36,7 @@ namespace Tomrrent
 
         public long TotalSize { get { return Files.Sum(static x => x.Size); } }
         public long Downloaded => Pieces.Count(static p => p.IsVerified) * PieceSize;
+        public long Uploaded { get; set; } = 0;
         public long Left => TotalSize - Downloaded;
         public string HexStringInfohash => string.Join( "",
                                                         Infohash.Select(
@@ -199,9 +200,19 @@ namespace Tomrrent
 
             return dict;
         }
-        public static long DateTimeToUnixTimestamp( DateTime time )
+        public static long DateTimeToUnixTimestamp(DateTime time)
         {
             return (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }
+        
+        public void UpdateTrackers(TrackerEvent ev, string id, int port)
+        {
+            foreach (var tracker in Trackers)
+                tracker.Update(this, ev, id, port);
+        }
+
+        public void ResetTrackersLastUpdated()
+        {}
+
     }
 }

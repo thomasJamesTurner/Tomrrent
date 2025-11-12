@@ -12,4 +12,17 @@
   <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <SourceRoot Include="/home/thomas/.nuget/packages/" />
   </ItemGroup>
+  <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Content Include="$(NuGetPackageRoot)endianbitconverter/1.1.0/contentFiles/any/netcoreapp1.0/LICENSE.EndianBitConverter.txt" Condition="Exists('$(NuGetPackageRoot)endianbitconverter/1.1.0/contentFiles/any/netcoreapp1.0/LICENSE.EndianBitConverter.txt')">
+      <NuGetPackageId>EndianBitConverter</NuGetPackageId>
+      <NuGetPackageVersion>1.1.0</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>LICENSE.EndianBitConverter.txt</Link>
+    </Content>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">/home/thomas/.nuget/packages/microsoft.codeanalysis.analyzers/1.1.0</PkgMicrosoft_CodeAnalysis_Analyzers>
+  </PropertyGroup>
 </Project>
