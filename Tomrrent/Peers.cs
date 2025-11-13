@@ -10,6 +10,22 @@ using System.IO;
 
 namespace Tomrrent
 {
+    public class DataRequest
+    {
+        public Peer Peer;
+        public int Piece;
+        public int Begin;
+        public int Length;
+        public bool IsCancelled;
+    }
+
+    public class DataPackage
+    {
+        public Peer Peer;
+        public int Piece;
+        public int Block;
+        public byte[] Data;
+    }
     public enum MessageType : int
     {
         Unknown = -3,
@@ -91,21 +107,30 @@ namespace Tomrrent
                 }
             }
 
-            Console.WriteLine(this, "connected");
+            Console.WriteLine(Id + "connected");
 
             stream = TcpClient.GetStream();
             stream.BeginRead(streamBuffer, 0, Peer.bufferSize, new AsyncCallback(HandleRead), null);
 
             SendHandshake();
             if (IsHandshakeReceived)
-                SendBitfield(torrent.IsPieceVerified);
+            {
+                int pieceCount = torrent.PieceHashes.Length;
+                bool[] verified = new bool[pieceCount];
+                for(int i = 0; i<pieceCount;i++)
+                {
+                    verified[i] = torrent.Pieces[i].IsVerified;
+                }
+                SendBitfield(verified);
+            }
+                
         }
         public void Disconnect()
         {
             if (!IsDisconnected)
             {
                 IsDisconnected = true;
-                Console.WriteLine(this, "disconnected, down " + Downloaded + ", up " + Uploaded);
+                Console.WriteLine(Id, "disconnected, down " + Downloaded + ", up " + Uploaded);
             }
 
             if (TcpClient != null)
@@ -158,7 +183,8 @@ namespace Tomrrent
             int messageLength = GetMessageLength(data);
             while (data.Count >= messageLength)
             {
-                HandleMessage(data.Take(messageLength).ToArray());
+                //temporarily disabling Handle message until
+                //HandleMessage(data.Take(messageLength).ToArray());
                 data = data.Skip(messageLength).ToList();
 
                 messageLength = GetMessageLength(data);
@@ -189,8 +215,8 @@ namespace Tomrrent
             if (IsHandshakeSent)
                 return;
 
-            Console.WriteLine(this, "-> handshake" );
-            SendBytes(EncodeHandshake(Torrent.Infohash, LocalId));
+            Console.WriteLine(Id, "-> handshake" );
+            SendBytes(Encoder.EncodeHandshake(torrent.Infohash, LocalId));
             IsHandshakeSent = true;
         }
 
@@ -199,8 +225,8 @@ namespace Tomrrent
             if( LastKeepAlive > DateTime.UtcNow.AddSeconds(-30) )
                 return;
 
-            Console.WriteLine(this, "-> keep alive" );
-            SendBytes(EncodeKeepAlive());
+            Console.WriteLine(Id, "-> keep alive" );
+            SendBytes(Encoder.EncodeKeepAlive());
             LastKeepAlive = DateTime.UtcNow;
         }
 
@@ -209,8 +235,8 @@ namespace Tomrrent
             if (IsChokeSent)
                 return;
 
-            Console.WriteLine(this, "-> choke" );
-            SendBytes(EncodeChoke());
+            Console.WriteLine(Id, "-> choke" );
+            SendBytes(Encoder.EncodeChoke());
             IsChokeSent = true;
         }
 
@@ -219,8 +245,8 @@ namespace Tomrrent
             if (!IsChokeSent)
                 return;
 
-            Console.WriteLine(this, "-> unchoke" );
-            SendBytes(EncodeUnchoke());
+            Console.WriteLine(Id, "-> unchoke" );
+            SendBytes(Encoder.EncodeUnchoke());
             IsChokeSent = false;
         }
 
@@ -229,8 +255,8 @@ namespace Tomrrent
             if (IsInterestedSent)
                 return;
 
-            Console.WriteLine(this, "-> interested");
-            SendBytes(EncodeInterested());
+            Console.WriteLine(Id, "-> interested");
+            SendBytes(Encoder.EncodeInterested());
             IsInterestedSent = true;
         }
 
@@ -239,40 +265,41 @@ namespace Tomrrent
             if (!IsInterestedSent)
                 return;
 
-            Console.WriteLine(this, "-> not interested");
-            SendBytes(EncodeNotInterested());
+            Console.WriteLine(Id, "-> not interested");
+            SendBytes(Encoder.EncodeNotInterested());
             IsInterestedSent = false;
         }
 
         public void SendHave(int index) 
         {
-            Console.WriteLine(this, "-> have " + index);
-            SendBytes(EncodeHave(index));
+            Console.WriteLine(Id, "-> have " + index);
+            SendBytes(Encoder.EncodeHave(index));
         }
 
         public void SendBitfield(bool[] isPieceDownloaded) 
         {
-            Console.WriteLine(this, "-> bitfield " + String.Join("", isPieceDownloaded.Select(x => x ? 1 : 0)));
-            SendBytes(EncodeBitfield(isPieceDownloaded));
+            Console.WriteLine(Id, "-> bitfield " + String.Join("", isPieceDownloaded.Select(x => x ? 1 : 0)));
+            SendBytes(Encoder.EncodeBitfield(isPieceDownloaded));
         }
 
         public void SendRequest(int index, int begin, int length) 
         {
-            Console.WriteLine(this, "-> request " + index + ", " + begin + ", " + length);
-            SendBytes(EncodeRequest(index, begin, length));
+            Console.WriteLine(Id, "-> request " + index + ", " + begin + ", " + length);
+            SendBytes(Encoder.EncodeRequest(index, begin, length));
         }
 
         public void SendPiece(int index, int begin, byte[] data) 
         {
-            Console.WriteLine(this, "-> piece " + index + ", " + begin + ", " + data.Length);
-            SendBytes(EncodePiece(index, begin, data));
+            Console.WriteLine(Id, "-> piece " + index + ", " + begin + ", " + data.Length);
+            SendBytes(Encoder.EncodePiece(index, begin, data));
             Uploaded += data.Length;
         }
 
-        public void SendCancel(int index, int begin, int length) 
+        public void SendCancel(int index, int begin, int length)
         {
-            Console.WriteLine(this, "-> cancel");
-            SendBytes(EncodeCancel(index, begin, length));
+            Console.WriteLine(Id, "-> cancel");
+            SendBytes(Encoder.EncodeCancel(index, begin, length));
         }
+        
     }
 }
