@@ -184,7 +184,7 @@ namespace Tomrrent
             while (data.Count >= messageLength)
             {
                 //temporarily disabling Handle message until
-                //HandleMessage(data.Take(messageLength).ToArray());
+                HandleMessage(data.Take(messageLength).ToArray());
                 data = data.Skip(messageLength).ToList();
 
                 messageLength = GetMessageLength(data);
