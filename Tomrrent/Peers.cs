@@ -103,6 +103,7 @@ namespace Tomrrent
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("Could not establish connection: " + e);
                     Disconnect();
                     return;
                 }
@@ -163,6 +164,7 @@ namespace Tomrrent
             }
             catch (Exception e)
             {
+                Console.WriteLine("Could not send Bytes: " + e);
                 Disconnect();
             }
         }
@@ -175,6 +177,7 @@ namespace Tomrrent
             }
             catch (Exception e)
             {
+                Console.WriteLine("Could not read handel: " + e);
                 Disconnect();
                 return;
             }
@@ -197,6 +200,7 @@ namespace Tomrrent
             }
             catch (Exception e)
             {
+                Console.WriteLine("Could not read handel: " + e);
                 Disconnect();
             }
         }
