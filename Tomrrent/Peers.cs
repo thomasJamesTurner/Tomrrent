@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Net.WebSockets;
 
 namespace Tomrrent
 {
@@ -299,6 +300,95 @@ namespace Tomrrent
         {
             Console.WriteLine(Id, "-> cancel");
             SendBytes(Encoder.EncodeCancel(index, begin, length));
+        }
+
+        private void HandleMessage(byte[] message)
+        {
+            LastActive = DateTime.Now;
+            MessageType type = GetMessageType(message);
+
+            switch(type)
+            {
+                case(MessageType.Unknown):
+                    return;
+                case(MessageType.Handshake):
+                    byte[] hash;
+                    string id;
+                    if(Encoder.DecodeHandshake(message,out hash,out id))
+                    {
+                        //HandleHadshake(hash,id);
+                    }
+                    break;
+                case(MessageType.KeepAlive):
+                    if(Encoder.DecodeKeepAlive(message))
+                    {
+                        //HandleKeepAlive()
+                    }
+                    break;
+                case(MessageType.Choke):
+                    if(Encoder.DecodeChoke(message))
+                    {
+                        //HandleChoke()
+                    }
+                    break;
+                case(MessageType.Unchoke):
+                    if(Encoder.DecodeUnchoke(message))
+                    {
+                        //HandleUnchoke()
+                    }
+                    break;
+                case(MessageType.Interested):
+                    if(Encoder.DecodeInterested(message))
+                    {
+                        //HandleInterested()
+                    }
+                    break;
+                case(MessageType.NotInterested):
+                    if(Encoder.DecodeNotInterested(message))
+                    {
+                        //HandleNotInterested()
+                    }
+                    break;
+                case(MessageType.Have):
+                    int haveIndex;
+                    if(Encoder.DecodeHave(message,out haveIndex))
+                    {
+                        //HandleHave()
+                    }
+                    break;
+                case(MessageType.Request):
+                    int requestIndex;
+                    int requestBegin;
+                    int requestLength;
+                    if(Encoder.DecodeRequest(message,out requestIndex,out requestBegin,out requestLength))
+                    {
+                        //HandleRequest()
+                    }
+                    break;
+                case(MessageType.Piece):
+                    int pieceIndex;
+                    int pieceBegin;
+                    byte[] pieceData;
+                    if(Encoder.DecodePiece(message,out pieceIndex,out pieceBegin,out pieceData))
+                    {
+                        //HandlePiece()
+                    }
+                    break;
+                case(MessageType.Cancel):
+                    int cancelIndex;
+                    int cancelBegin;
+                    int cancelLength;
+                    if(Encoder.DecodeCancel(message,out cancelIndex,out cancelBegin,out cancelLength))
+                    {
+                        //HandleCancel()
+                    }
+                    break;
+                case(MessageType.Port):
+                    Console.WriteLine("port: " + string.Join("",message.Select(x=>x.ToString("x2"))));
+                    break;
+            }
+            Console.WriteLine("Unhandled Incomming Message: "+ string.Join("",message.Select(x=>x.ToString("x2"))));
+            Disconnect();
         }
         
     }
