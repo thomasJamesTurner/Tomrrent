@@ -409,8 +409,8 @@ namespace Tomrrent
             }
             Id = id;
             IsHandshakeReceived = true;
-            bool[] verified = new bool[torrent.Infohash.Length];
-            for(int i=0;i<torrent.Infohash.Length;i++)
+            bool[] verified = new bool[torrent.PieceCount];
+            for(int i=0;i<torrent.PieceCount;i++)
             {
                 verified[i] = torrent.Pieces[i].IsVerified;
             }
@@ -475,7 +475,7 @@ namespace Tomrrent
         }
         private void HandleBitfield(bool[] isDownloaded)
         {
-            for(int i = 0;i<torrent.Infohash.Length;i++)
+            for(int i = 0;i<torrent.PieceCount;i++)
             {
                 IsPieceDownloaded[i] = IsPieceDownloaded[i] || isDownloaded[i]; 
             }
