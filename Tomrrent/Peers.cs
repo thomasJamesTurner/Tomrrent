@@ -320,44 +320,44 @@ namespace Tomrrent
                     string id;
                     if(Encoder.DecodeHandshake(message,out hash,out id))
                     {
-                        //HandleHadshake(hash,id);
+                        HandleHadshake(hash,id);
                     }
                     break;
                 case(MessageType.KeepAlive):
                     if(Encoder.DecodeKeepAlive(message))
                     {
-                        //HandleKeepAlive()
+                        HandleKeepAlive();
                     }
                     break;
                 case(MessageType.Choke):
                     if(Encoder.DecodeChoke(message))
                     {
-                        //HandleChoke()
+                        HandleChoke();
                     }
                     break;
                 case(MessageType.Unchoke):
                     if(Encoder.DecodeUnchoke(message))
                     {
-                        //HandleUnchoke()
+                        HandleUnchoke();
                     }
                     break;
                 case(MessageType.Interested):
                     if(Encoder.DecodeInterested(message))
                     {
-                        //HandleInterested()
+                        HandleInterested();
                     }
                     break;
                 case(MessageType.NotInterested):
                     if(Encoder.DecodeNotInterested(message))
                     {
-                        //HandleNotInterested()
+                        HandleNotInterested();
                     }
                     break;
                 case(MessageType.Have):
                     int haveIndex;
                     if(Encoder.DecodeHave(message,out haveIndex))
                     {
-                        //HandleHave()
+                        HandleHave(haveIndex);
                     }
                     break;
                 case(MessageType.Request):
@@ -366,7 +366,7 @@ namespace Tomrrent
                     int requestLength;
                     if(Encoder.DecodeRequest(message,out requestIndex,out requestBegin,out requestLength))
                     {
-                        //HandleRequest()
+                        HandleRequest(requestIndex,requestBegin,requestLength);
                     }
                     break;
                 case(MessageType.Piece):
@@ -375,7 +375,7 @@ namespace Tomrrent
                     byte[] pieceData;
                     if(Encoder.DecodePiece(message,out pieceIndex,out pieceBegin,out pieceData))
                     {
-                        //HandlePiece()
+                        HandlePiece(pieceIndex,pieceBegin,pieceData);
                     }
                     break;
                 case(MessageType.Cancel):
@@ -384,7 +384,7 @@ namespace Tomrrent
                     int cancelLength;
                     if(Encoder.DecodeCancel(message,out cancelIndex,out cancelBegin,out cancelLength))
                     {
-                        //HandleCancel()
+                        HandleCancel(cancelIndex,cancelBegin,cancelLength);
                     }
                     break;
                 case(MessageType.Port):
@@ -394,6 +394,138 @@ namespace Tomrrent
             Console.WriteLine("Unhandled Incomming Message: "+ string.Join("",message.Select(x=>x.ToString("x2"))));
             Disconnect();
         }
-        
+        private void HandleHadshake(byte[] hash,string id)
+        {
+            if(!torrent.Infohash.SequenceEqual(hash))
+            {
+                Console.WriteLine("Hash does not match torrent"
+                                    +"\nExpected: "
+                                    +string.Join("",torrent.Infohash.Select(x=>x.ToString("x2")))
+                                    +"\nRecieved: "
+                                    +string.Join("",hash.Select(x=>x.ToString("x2")))
+                                    +"\nterminating connection");
+                Disconnect();
+                return;
+            }
+            Id = id;
+            IsHandshakeReceived = true;
+            bool[] verified = new bool[torrent.Infohash.Length];
+            for(int i=0;i<torrent.Infohash.Length;i++)
+            {
+                verified[i] = torrent.Pieces[i].IsVerified;
+            }
+            SendBitfield(verified);
+        }
+
+        private void HandleKeepAlive()
+        {
+            Console.WriteLine("Keep connection alive");
+        }
+        private void HandleChoke()
+        {
+            IsChokeReceived = true;
+            var handler = StateChanged;
+            if (handler != null)
+            {
+                Console.WriteLine("Choke connection");
+                handler(this, new EventArgs());
+            }
+        }
+        private void HandleUnchoke()
+        {
+            IsChokeReceived = false;
+            var handler = StateChanged;
+            if (handler != null)
+            {
+                Console.WriteLine("Unchoke connection");
+                handler(this, new EventArgs());
+            }
+            
+        }
+        private void HandleInterested()
+        {
+            IsInterestedReceived = true;
+            var handler = StateChanged;
+            if (handler != null)
+            {
+                Console.WriteLine("Interested");
+                handler(this, new EventArgs());
+            }
+        }
+        private void HandleNotInterested()
+        {
+            IsInterestedReceived = false;
+            var handler = StateChanged;
+            if (handler != null)
+            {
+                Console.WriteLine("Not interested");
+                handler(this, new EventArgs());
+            }
+        }
+
+        private void HandleHave(int index)
+        {
+            IsPieceDownloaded[index] = true;
+            var handler = StateChanged;
+            if (handler != null)
+            {
+                Console.WriteLine("Have " + index + " - " + PiecesDownloadedCount + " available (" + PiecesDownloaded + ")");
+                handler(this, new EventArgs());
+            }
+        }
+        private void HandleBitfield(bool[] isDownloaded)
+        {
+            for(int i = 0;i<torrent.Infohash.Length;i++)
+            {
+                IsPieceDownloaded[i] = IsPieceDownloaded[i] || isDownloaded[i]; 
+            }
+            var handler = StateChanged;
+            handler(this,new EventArgs());
+        }
+
+        private void HandleRequest(int index, int begin, int length)
+        {
+            var handler = BlockRequested;
+            if(handler != null)
+            {
+                handler(this,new DataRequest()
+                {
+                    Peer = this,
+                    Piece = index,
+                    Begin = begin,
+                    Length = length
+                });
+            }
+        }
+
+        private void HandlePiece(int index, int begin, byte[] data)
+        {
+            var handler = BlockReceived;
+            if(handler != null)
+            {
+                handler(this,new DataPackage()
+                {
+                    Peer = this,
+                    Piece = index,
+                    Block = begin/torrent.BlockSize,
+                    Data = data
+                });
+            }
+        }
+
+        private void HandleCancel(int index, int begin, int length)
+        {
+            var handler = BlockCancelled;
+            if(handler != null)
+            {
+                handler(this,new DataRequest()
+                {
+                   Peer = this,
+                   Piece = index,
+                   Begin = begin,
+                   Length = length 
+                });
+            }
+        }
     }
 }
