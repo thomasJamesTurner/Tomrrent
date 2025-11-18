@@ -30,6 +30,7 @@ namespace Tomrrent
 
         public int BlockSize { get; private set; }
         public int PieceSize { get; private set; }
+        public int PieceCount   { get; private set; }
         public byte[][] PieceHashes { get; private set; }
         public List<Piece> Pieces { get; } = new();
         public byte[] Infohash { get; private set; } = new byte[20];
@@ -68,12 +69,13 @@ namespace Tomrrent
             }
 
             // Split into pieces
-            int pieceCount = (int)Math.Ceiling(TotalSize / (double)PieceSize);
-            PieceHashes = new byte[pieceCount][];
+            PieceCount = (int)Math.Ceiling(TotalSize / (double)PieceSize);
+
+            PieceHashes = new byte[PieceCount][];
             if (pieceHashes == null)
             {
                 //new torrent
-                for (int i = 0; i < pieceCount; i++)
+                for (int i = 0; i < PieceCount; i++)
                 {
                     Piece piece = new Piece(i, PieceSize, BlockSize, this);
                     PieceHashes[i] = piece.GetHash();
@@ -84,7 +86,7 @@ namespace Tomrrent
             }
             else
             {
-                for (int i = 0; i < pieceCount; i++)
+                for (int i = 0; i < PieceCount; i++)
                 {
 
                     PieceHashes[i] = new byte[20];
