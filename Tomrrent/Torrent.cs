@@ -47,7 +47,6 @@ namespace Tomrrent
         public string UrlSafeStringInfohash => Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(Infohash, 0, 20));
         public event EventHandler<List<IPEndPoint>> PeerList;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize, byte[]? pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
 
         {
@@ -102,7 +101,6 @@ namespace Tomrrent
             byte[] bytes = Encoder.Encode(info);
             Infohash = SHA1.Create().ComputeHash(bytes);
         }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         
         public static Torrent Create(string path,List<string>? trackers = null, int pieceSize = 32768,string comment = "")
         {
