@@ -2,7 +2,7 @@ using System.Data.SqlTypes;
 
 namespace Tomrrent
 {
-    class FileHandler
+    public class FileHandler
     {
         public byte[]? Read(Torrent parentTorrent, long start, int length)
         {
