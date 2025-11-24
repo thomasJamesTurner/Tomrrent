@@ -92,6 +92,29 @@ namespace Tomrrent
         public long Downloaded;
 
 
+
+        public Peer(Torrent torrent, string localId, TcpClient client) : this(torrent, localId)
+        {            
+            TcpClient = client;
+            IPEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
+        }
+
+        public Peer(Torrent torrent, string localId, IPEndPoint endPoint): this(torrent, localId)
+        {
+            IPEndPoint = endPoint;
+        }
+
+        private Peer(Torrent torrent, string localId)
+        {
+            LocalId = localId;
+            this.torrent = torrent;
+
+            LastActive = DateTime.UtcNow;
+            IsPieceDownloaded = new bool[torrent.PieceCount];
+            IsBlockRequested = new bool[torrent.PieceCount][];
+            for (int i = 0; i < torrent.PieceCount; i++)
+                IsBlockRequested[i] = new bool[torrent.GetBlockCount(i)];
+        }
         public void Connect()
         {
             if (TcpClient == null)
