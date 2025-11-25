@@ -4,7 +4,7 @@ namespace Tomrrent
 {
     public class FileHandler
     {
-        public byte[]? Read(Torrent parentTorrent, long start, int length)
+        public static byte[] Read(Torrent parentTorrent, long start, int length)
         {
             long end = start + length;
             byte[] buffer = new byte[length];
