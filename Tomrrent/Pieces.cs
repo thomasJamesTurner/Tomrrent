@@ -37,7 +37,7 @@ namespace Tomrrent
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
-        public int GetPieceSize(int piece)
+        public int GetPieceSize()
         {
             return Size;
         }
@@ -52,7 +52,17 @@ namespace Tomrrent
             return sha1.ComputeHash(data);
         }
 
-        
+        public int GetBlockSize(int block)
+        {
+            if (block == GetBlockCount() - 1)
+            {
+                int remainder = Convert.ToInt32(GetPieceSize() % BlockSize);
+                if (remainder != 0)
+                    return remainder;
+            }
+
+            return BlockSize;
+        }
         public void Verify(int piece)
         {
 
