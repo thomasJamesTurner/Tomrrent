@@ -15,7 +15,7 @@ namespace Tomrrent
         private static SHA1 sha1 = SHA1.Create();
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public Piece(int index, int size, int blockSize, Torrent parent, byte[]? hash = null)
+        public Piece(int index, int size, int blockSize, Torrent parent, byte[] hash = null)
         {
             Index = index;
             Size = size;
