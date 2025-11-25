@@ -2,7 +2,7 @@ using System.Data.SqlTypes;
 
 namespace Tomrrent
 {
-    public class FileHandler
+    public static class FileHandler
     {
         public static byte[] Read(Torrent parentTorrent, long start, int length)
         {
@@ -36,7 +36,7 @@ namespace Tomrrent
             }
             return buffer;
         }
-        public void Write(Torrent parentTorrent, long start, byte[] bytes)
+        public static void Write(Torrent parentTorrent, long start, byte[] bytes)
         {
             long end = start + bytes.Length;
             List<FileItem> files = parentTorrent.Files;
@@ -66,21 +66,19 @@ namespace Tomrrent
                 }
             }
         } 
-#pragma warning disable CS8603 // Possible null reference return.
-        public byte[] ReadPiece(Torrent parentTorrent,int piece)
+        public static byte[] ReadPiece(Torrent parentTorrent,int piece)
         {
 
             return Read(parentTorrent, piece * parentTorrent.PieceSize, parentTorrent.Pieces[piece].GetPieceSize(piece));
         }
 
-        public byte[] ReadBlock(Torrent parentTorrent,int piece, int offset, int length)
+        public static byte[] ReadBlock(Torrent parentTorrent,int piece, int offset, int length)
         {
 
             return Read(parentTorrent, (piece * parentTorrent.PieceSize) + offset, length);
 
         }
-#pragma warning restore CS8603 // Possible null reference return.
-        public void WriteBlock(Torrent parentTorrent, int piece, int block, byte[] bytes)
+        public static void WriteBlock(Torrent parentTorrent, int piece, int block, byte[] bytes)
         {
             Write(parentTorrent, piece * parentTorrent.PieceSize + block * parentTorrent.BlockSize, bytes);
             parentTorrent.Pieces[piece].IsBlockAcquired[block] = true;
