@@ -74,6 +74,7 @@ namespace Tomrrent
                 if (PieceVerified != null)
                 {
                     PieceVerified(this, piece);
+                    ParentTorrent.VerifiedPieceCount += 1;
                 }
                 return;
             }

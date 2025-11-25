@@ -31,6 +31,7 @@ namespace Tomrrent
         public int BlockSize { get; private set; }
         public int PieceSize { get; private set; }
         public int PieceCount   { get; private set; }
+        public int VerifiedPieceCount;
         public byte[][] PieceHashes { get; private set; }
         public List<Piece> Pieces { get; } = new();
         public byte[] Infohash { get; private set; } = new byte[20];
@@ -38,6 +39,8 @@ namespace Tomrrent
         public long TotalSize { get { return Files.Sum(static x => x.Size); } }
         public long Downloaded => Pieces.Count(static p => p.IsVerified) * PieceSize;
         public long Uploaded { get; set; } = 0;
+        public bool IsCompleted { get { return VerifiedPieceCount == PieceCount; } }
+        public bool IsStarted { get { return VerifiedPieceCount > 0; } }
         public long Left => TotalSize - Downloaded;
         public string HexStringInfohash => string.Join( "",
                                                         Infohash.Select(
