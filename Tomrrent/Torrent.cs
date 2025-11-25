@@ -147,6 +147,11 @@ namespace Tomrrent
             return torrent;
 
         }
+
+        public int GetBlockCount(int piece)
+        {
+            return Convert.ToInt32(Math.Ceiling(PieceSize / (double)BlockSize));
+        }
         private static Dictionary<string,object> TorrentToEncodingObject(Torrent torrent)
         {
             Dictionary<string,object> dict = new Dictionary<string, object>();
