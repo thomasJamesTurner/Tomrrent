@@ -47,7 +47,7 @@ namespace Tomrrent
         public string UrlSafeStringInfohash => Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(Infohash, 0, 20));
         public event EventHandler<List<IPEndPoint>> PeerList;
 
-        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize, byte[]? pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
+        public Torrent(string name, string address, List<FileItem> files, List<string> trackers, int pieceSize, byte[] pieceHashes = null, int blockSize = 16384, bool? isPrivate = false)
 
         {
             Name = name;
@@ -102,7 +102,7 @@ namespace Tomrrent
             Infohash = SHA1.Create().ComputeHash(bytes);
         }
         
-        public static Torrent Create(string path,List<string>? trackers = null, int pieceSize = 32768,string comment = "")
+        public static Torrent Create(string path,List<string> trackers = null, int pieceSize = 32768,string comment = "")
         {
             string name = "";
             List<FileItem> files = new List<FileItem>();
@@ -135,8 +135,6 @@ namespace Tomrrent
                     offset++;
                 }
             }
-
-            #pragma warning disable CS8604 // Possible null reference argument.
             Torrent torrent = new Torrent(name, "", files, trackers, pieceSize);
 
             torrent.Comment = comment;
@@ -205,6 +203,7 @@ namespace Tomrrent
 
             return dict;
         }
+        
         public static long DateTimeToUnixTimestamp(DateTime time)
         {
             return (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
